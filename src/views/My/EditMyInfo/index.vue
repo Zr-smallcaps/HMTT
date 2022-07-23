@@ -66,7 +66,7 @@
         <!-- 生日编辑 -->
         <van-cell
           title="生日"
-          :value="sendInfo.birthday"
+          :value="birthday"
           is-link
           @click="isShowBirthdy = true"
         ></van-cell>
@@ -151,8 +151,10 @@ export default {
       if (this.name === '') {
         return Toast('内容不能为空')
       } else {
+        if (this.sendInfo.name === this.name) {
+          return (this.isShowName = false)
+        }
         this.sendEditUserInfo({ name: this.name })
-
         // 发送请求成功了才会修改原来页面的值
         if (this.status === 200) {
           Toast.success('修改成功')
