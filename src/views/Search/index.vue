@@ -1,69 +1,60 @@
 <template>
-  <div>
+  <div class="">
     <form action="/">
       <van-search
         v-model="keywords"
         show-action
         placeholder="请输入搜索关键词"
         @search="onSearch"
-        @cancel="$router.back()"
-        @focus="visibleSearchSuggestion"
+        @cancel="onCancel"
+        @focus="visableSearchSuggestion"
         background="#3296fa"
-        class="search"
       />
     </form>
-
+    <!-- 搜索结果、历史、建议 -->
     <component
       :is="componentName"
       :keywords="keywords"
-      @item="Item"
-      :search-historys="searchHistorys"
-      @search="onSearch"
-      @allDelte="searchHistorys = []"
-      @delOneHistory="delOneHistory"
+      @resultShow="resultShow"
     ></component>
   </div>
 </template>
-
 <script>
-import SearchHistory from './components/searchHistory'
-import SearchResult from './components/searchResult.vue'
-import SearchSuggestion from './components/searchSuggestion.vue'
-import { get, set } from '@/utils/storage'
+import SearchHistory from './components/SearchHistory'
+import SearchResult from './components/SearchResult'
+import SearchSuggestion from './components/SearchSuggestion'
 export default {
-  name: 'Search',
+  name: 'index',
+  props: {},
   data () {
     return {
       keywords: '',
-      isShowSearchResult: false,
-      searchHistorys: get('TOUTIAO_LISHI') || []
+      isShowSearchResult: false
     }
   },
   methods: {
-    onSearch (val) {
+    onSearch () {
       this.isShowSearchResult = true
+      this.$store.commit('setData', this.keywords)
+    },
+    onCancel () {
+      this.$router.go(-1)
+    },
+    visableSearchSuggestion () {
+      return (this.isShowSearchResult = false)
+    },
+    resultShow (val) {
+      /* const reg1 = /<span style='color:red'>/gi
+      const reg2 = /<\/span>/gi
+      val = val.replace(reg1, '').replace(reg2, '') */
+      this.$store.commit('setData', val)
       this.keywords = val
-      const index = this.searchHistorys.indeOf(val)
-      if (index !== 1) {
-        this.searchHistorys.splice(index, 1)
-      }
-      this.searchHistorys.unshift(val)
-    },
-    visibleSearchSuggestion () {
-      this.isShowSearchResult = false
-    },
-    Item (val) {
-      this.keywords = val
-    },
-    delOneHistory (index) {
-      this.searchHistorys.splice(index, 1)
+      this.isShowSearchResult = true
     }
   },
-  components: {
-    SearchHistory,
-    SearchResult,
-    SearchSuggestion
-  },
+  created () {},
+  mounted () {},
+  watch: {},
   computed: {
     componentName () {
       if (this.keywords.trim() === '') {
@@ -75,12 +66,11 @@ export default {
       return 'SearchSuggestion'
     }
   },
-  watch: {
-    searchHistorys (val) {
-      set('TOUTIAO_LISHI', val)
-    }
+  components: {
+    SearchHistory,
+    SearchResult,
+    SearchSuggestion
   }
 }
 </script>
-
-<style></style>
+<style scoped lang="less"></style>

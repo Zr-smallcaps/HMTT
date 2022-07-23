@@ -1,48 +1,59 @@
 <template>
-  <div>
+  <div class="">
+    <!-- 历史记录 -->
     <van-cell title="历史记录">
-      <van-icon name="delete" @click="isShow = true" />
-      <div v-if="isShow">
-        <span @click="$emit('allDelte')">全部删除</span>
+      <template v-if="delShow">
+        <span @click="dele">全部删除</span>
         &nbsp;&nbsp;
-        <span @click="isShow = false">完成</span>
-      </div>
+        <span @click="delShow = false">完成</span>
+      </template>
+      <van-icon v-else name="delete" @click="delShow = true"></van-icon>
     </van-cell>
     <van-cell
       :title="item"
-      v-for="(item, index) in searchHistorys"
+      v-for="(item, index) in searchHistoryList"
       :key="index"
-      @click="clickFn(item, index)"
+      @click="resultShow(item)"
     >
-      <van-icon name="close" v-show="isShow"></van-icon>
+      <van-icon name="close" @click="del(index)"></van-icon>
     </van-cell>
+    <!-- /历史记录 -->
   </div>
 </template>
-
 <script>
+import storage from '@/utils/storage'
 export default {
-  name: 'searchHistorys',
+  name: 'SearchHistory',
+  props: {},
   data () {
     return {
-      isShow: false
-    }
-  },
-  props: {
-    searchHistorys: {
-      type: Array,
-      required: true
+      searchHistoryList: [],
+      delShow: false
     }
   },
   methods: {
-    clickFn (item, index) {
-      if (this.isShow) {
-        this.$emit('delOneHistory', index)
-      } else {
-        this.$emit('search', item)
-      }
+    del (index) {
+      console.log(index)
+      const data = storage.get('toutiao-histories')
+      data.splice(index, 1)
+      console.log(data)
+      storage.set('toutiao-histories', data)
+      this.searchHistoryList = storage.get('toutiao-histories')
+    },
+    dele () {
+      storage.set('toutiao-histories', [])
+    },
+    resultShow (item) {
+      this.$emit('resultShow', item)
     }
-  }
+  },
+  created () {
+    this.searchHistoryList = storage.get('toutiao-histories')
+  },
+  mounted () {},
+  watch: {},
+  computed: {},
+  components: {}
 }
 </script>
-
-<style></style>
+<style scoped lang="less"></style>

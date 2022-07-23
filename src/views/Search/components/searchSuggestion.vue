@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="searchSuggestion-container">
     <van-cell
-      v-for="(item, index) in hightData"
+      v-for="(item, index) in highlightData"
       :key="index"
-      @click="$emit('item', List[index])"
+      @click="resultShow(item, index)"
     >
       <template #icon>
-        <van-icon name="search" class="search-icon" />
+        <van-icon name="search" class="search-icon"></van-icon>
       </template>
       <template #title>
         <span v-html="item"></span>
@@ -14,55 +14,63 @@
     </van-cell>
   </div>
 </template>
-
 <script>
-import { getSearchSuggestion } from '@/api/search'
+import { getSearchSuggestion } from '@/api'
 export default {
-  name: 'SearchSuggestion',
-  data () {
-    return {
-      List: []
-    }
-  },
+  name: 'SearchHistory',
   props: {
     keywords: {
       type: String,
       required: true
     }
   },
-  methods: {
-    async getSearchSugges () {
-      try {
-        const { data } = await getSearchSuggestion(this.keywords)
-        // console.log(data.data.options);
-        if (data.data.options.length === 0) {
-          this.$toast.fail('没有搜索建议')
-        }
-        this.List = data.data.options.filter(Boolean)
-      } catch (error) {}
+  data () {
+    return {
+      suggestions: []
     }
   },
+  methods: {
+    async getSearchSuggestion () {
+      try {
+        const res = await getSearchSuggestion(this.keywords)
+        console.log(res)
+        this.suggestions = res.data.data.options.filter(Boolean)
+      } catch (err) {
+        console.log(err)
+      }
+    },
+    resultShow (item, index) {
+      // 将点击的搜索建议传给父组件
+      this.$emit('resultShow', this.suggestions[index])
+    }
+  },
+  created () {},
+  mounted () {},
   watch: {
     keywords: {
       immediate: true,
       handler () {
-        this.getSearchSugges()
+        this.getSearchSuggestion()
       }
     }
   },
   computed: {
-    hightData () {
-      const reg = new RegExp(this.keywords, 'ig')
-      return this.List.map((str) =>
+    // 对原数组筛选
+    highlightData () {
+      const reg = new RegExp(this.keywords, 'gi')
+      return this.suggestions.map((str) =>
         str.replace(reg, (match) => `<span style='color:red'>${match}</span>`)
       )
     }
-  }
+  },
+  components: {}
 }
 </script>
-
 <style scoped lang="less">
-.search-icon {
-  padding-top: 10px;
+.searchSuggestion-container {
+  /deep/.van-icon {
+    padding-top: 8px;
+    padding-right: 6px;
+  }
 }
 </style>
