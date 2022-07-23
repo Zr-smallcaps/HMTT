@@ -20,9 +20,9 @@
   </div>
 </template>
 <script>
-import SearchHistory from './components/SearchHistory'
-import SearchResult from './components/SearchResult'
-import SearchSuggestion from './components/SearchSuggestion'
+import SearchHistory from '@/views/Search/components/searchHistory'
+import SearchResult from '@/views/Search/components/searchResult'
+import SearchSuggestion from '@/views/Search/components/searchSuggestion'
 export default {
   name: 'index',
   props: {},

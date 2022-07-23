@@ -15,7 +15,7 @@
           class="like-btn"
           :icon="comment.is_liking ? 'good-job' : 'good-job-o'"
           @click="OngoodJob"
-          >{{ comment.like_count || '赞' }}</van-button
+          >{{ count || '赞' }}</van-button
         >
       </div>
 
@@ -72,7 +72,8 @@ export default {
       loading: false, // 上拉加载更多的 loading
       finished: false, // 是否加载结束
       commentsList: [],
-      showReply: false
+      showReply: false,
+      count: this.comment.like_count
     }
   },
   created () {},
@@ -84,13 +85,12 @@ export default {
       this.showReply = false
     },
     async OngoodJob () {
-      let count = this.comment.like_count
       if (this.comment.is_liking) {
         // 此时对评论是点赞的  点击取消点赞
         try {
           await delLikingsComments(this.comment.com_id)
           this.$emit('update:is_liking', !this.comment.is_liking)
-          this.$emit('update:like_count', count--)
+          this.$emit('update:like_count', this.count--)
 
           this.$toast.success('取消点赞成功')
         } catch (error) {
@@ -102,7 +102,7 @@ export default {
           await likingsComments(this.comment.com_id)
           this.$emit('update:is_liking', !this.comment.is_liking)
 
-          this.$emit('update:like_count', count++)
+          this.$emit('update:like_count', this.count++)
           this.$toast.success('点赞成功')
         } catch (error) {
           this.$toast.fail('点赞失败')
