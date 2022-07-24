@@ -9,12 +9,24 @@
           left-arrow
           @click-left="$router.back()"
         />
-        <input type="file" hidden ref="file" @change="onFileChange" />
+        <input
+          type="file"
+          hidden
+          ref="file"
+          accept=".jpg"
+          @change="onFileChange"
+        />
         <!-- /导航栏 -->
         <van-cell title="头像" is-link @click="$refs.file.click()">
           <van-image class="avatar" fit="cover" round :src="userPhoto" />
         </van-cell>
-        <van-popup></van-popup>
+        <van-popup v-model="imageShow">
+          <ImagePopup
+            :userImage="userImage"
+            :imageShow.sync="imageShow"
+            :updatePhoto.sync="userPhoto"
+          ></ImagePopup>
+        </van-popup>
         <!-- 昵称编辑 -->
         <van-cell
           title="昵称"
@@ -89,6 +101,7 @@
   </div>
 </template>
 <script>
+import ImagePopup from './components/imagePopup.vue'
 import { Toast } from 'vant'
 import { getUserProfileInfo, sendEditUserInfo } from '@/api'
 export default {
@@ -104,6 +117,7 @@ export default {
       maxDate: new Date(),
       currentDate: new Date(),
       columns: ['男', '女'],
+      // 用户返回的头像数据
       userPhoto: '',
       sendInfo: {
         name: '',
@@ -112,15 +126,37 @@ export default {
         real_name: '',
         intro: ''
       },
-      status: 0
+      status: 0,
+      imageShow: false,
+      userImage: null
     }
   },
-  components: {},
+  components: { ImagePopup },
   computed: {},
   created () {
     this.getUserProfileInfo()
   },
-  mounted () {},
+  mounted () {
+    /* this.$refs.file.addEventListener('change', (e) => {
+      let photo = e.target.files[0]
+      photo = URL.createObjectURL(photo)
+      this.userImage = photo
+ */
+    // src 能识别base64，相对和绝对路径,file,blob对象的url
+    // blob对象的url
+    // 此方法会导致内存泄漏的问题
+    /* photo = URL.createObjectURL(photo)
+      this.userImage = photo */
+    /*       const reader = new FileReader()
+      reader.readAsDataURL(photo)
+      console.log('reader.readAsDataURL(photo)', reader.readAsDataURL(photo))
+      reader.onload = (data) => {
+        console.log('data', data)
+        this.userImage = data.target.result
+      } */
+    //  this.imageShow = true
+    //  })
+  },
   methods: {
     // 生日的取消和确认
     onBirthdyCancel () {
@@ -207,16 +243,28 @@ export default {
     },
     onFileChange () {
       // 获取文件对象
-      const file = this.$refs.file[0]
+      // const file = this.$refs.file[0]
+      // console.log(file)
       // 基于文章对象获取 blob 数据 就是设置图片的src
-      const data = window.URL.createObjectURL(file)
-      console.log(data)
-      /*       const reader = new FileReader()
+      // const data = window.URL.createObjectURL(file)
+      // console.log(data)
+      /*  const reader = new FileReader()
+      // 加载成功时执行的回调函数
       reader.onload = (data) => {
         const res = data.target || data.srcElement
         this.sendInfo.photo = res.result
       }
       reader.readAsDataURL(file) */
+
+      // 获取文件对象
+      const file = this.$refs.file.files[0]
+      // 基于文章对象获取 blob 数据
+      this.userImage = window.URL.createObjectURL(file)
+      // 展示预览图片弹出层
+      this.imageShow = true
+      // file-input 如果选了同一个文件不会触发 change 事件
+      // 解决办法就是每次使用完毕，把它的 value 清空
+      this.$refs.file.value = ''
     }
   },
   watch: {}

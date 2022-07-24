@@ -11,7 +11,7 @@
 
     <div class="main-wrap">
       <!-- 加载中 -->
-      <div class="loading-wrap" v-if="loading">
+      <div class="loading-wrap" v-if="articleLoading">
         <van-loading color="#3296fa" vertical>加载中</van-loading>
       </div>
       <!-- /加载中 -->
@@ -59,14 +59,22 @@
           ref="article-content"
         ></div>
         <van-divider>正文结束</van-divider>
-        <CommentItem
-          v-for="(comment, index) in commentsList"
-          :key="index"
-          class="comments-container"
-          :comment="comment"
-          :is_liking.sync='comment.is_liking'
-          :like_count.sync='comment.like_count'
-        ></CommentItem>
+        <van-list
+          offset="100"
+          v-model="loading"
+          :finished="finished"
+          finished-text="没有更多了"
+          @load="onLoad"
+        >
+          <CommentItem
+            v-for="(comment, index) in commentsList"
+            :key="index"
+            class="comments-container"
+            :comment="comment"
+            :is_liking.sync="comment.is_liking"
+            :like_count.sync="comment.like_count"
+          ></CommentItem>
+        </van-list>
       </div>
       <!-- /加载完成-文章详情 -->
 
@@ -160,12 +168,15 @@ export default {
   data () {
     return {
       article: {},
-      loading: true,
+      loading: false,
       errorStatus: 0, // 失败的状态码
       articleId: this.$route.params.articleId,
       show: false,
       message: '',
-      commentsList: []
+      commentsList: [],
+      lastId: 0,
+      finished: false,
+      articleLoading: true
     }
   },
   computed: {},
@@ -185,11 +196,11 @@ export default {
         setTimeout(() => {
           this.previewImage()
         })
-        this.loading = false
+        this.articleLoading = false
         console.log('data', data)
       } catch (err) {
         // console.log(err)
-        this.loading = false
+        this.articleLoading = false
         console.log('获取数据失败', err)
         if (err.response.status === 404) {
           this.errorStatus = 404
@@ -233,6 +244,7 @@ export default {
           this.article.comm_count++
           this.$toast('发表评论成功')
           this.show = false
+          this.message = ''
         } catch (err) {
           this.$toast.fail('发表评论失败')
         }
@@ -243,6 +255,7 @@ export default {
     async reload () {
       await this.loadArticle()
     },
+    // 获取文章的评论
     async getArticlesComments () {
       try {
         const {
@@ -250,13 +263,32 @@ export default {
         } = await getArticlesComments({
           type: 'a',
           source: this.articleId,
-          limit: 10
+          limit: 3
         })
         this.commentsList = data.results
-        // console.log('commentsList', this.commentsList)
+        // 获取返回数据的最后一条评论id
+        this.lastId = data.last_id
+        console.log('data', data)
       } catch (error) {
         console.log(error)
       }
+    },
+    // onLoad事件触发了在次获取评论
+    async onLoad () {
+      const {
+        data: { data }
+      } = await getArticlesComments({
+        type: 'a',
+        source: this.articleId,
+        last_id: this.lastId,
+        limit: 3
+      })
+      this.commentsList.unshift(...data.results)
+      this.lastId = data.last_id
+      if (!this.lastId) {
+        this.finished = true
+      }
+      this.loading = false
     },
     async followingUser () {
       if (this.article.is_followed) {

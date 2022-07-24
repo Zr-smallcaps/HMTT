@@ -11,7 +11,6 @@ import 'vant/lib/index.css'
 // 引入flexble
 import 'amfe-flexible/index.min.js'
 import dayjs from 'dayjs'
-
 // 加载中文语言包
 import 'dayjs/locale/zh-cn'
 

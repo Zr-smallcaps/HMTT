@@ -15,7 +15,7 @@
       :key="index"
       @click="resultShow(item)"
     >
-      <van-icon name="close" @click="del(index)"></van-icon>
+      <van-icon name="close" @click="del(index)" v-show="delShow"></van-icon>
     </van-cell>
     <!-- /历史记录 -->
   </div>
